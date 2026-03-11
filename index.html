@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Familia">
+<meta name="theme-color" content="#1a5276">
+<title>Casa Oscar & Mariel</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --accent: #e74c3c;
+  --green: #27ae60;
+  --orange: #f39c12;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --radius: 20px;
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: white;
+  padding: calc(var(--safe-top) + 16px) 20px 24px;
+  text-align: center;
+}
+.header .greeting {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.header .date-display {
+  font-size: 18px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+.header .weather {
+  margin-top: 10px;
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+/* ===== NAV TABS ===== */
+.nav-tabs {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid #e8e8e8;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-tab {
+  flex: 1;
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-light);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.nav-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: rgba(26, 82, 118, 0.05);
+}
+.nav-tab .tab-icon {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.content {
+  padding: 16px;
+  padding-bottom: calc(var(--safe-bottom) + 20px);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== ACTION BUTTONS ===== */
+.action-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+.action-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.action-btn .btn-icon {
+  font-size: 36px;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+.action-btn .btn-text {
+  text-align: left;
+}
+.action-btn .btn-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+}
+.action-btn .btn-sub {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.btn-fer { background: linear-gradient(135deg, #2980b9, #3498db); }
+.btn-whatsapp { background: linear-gradient(135deg, #1e8449, #27ae60); }
+.btn-emergency { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+.btn-osde { background: linear-gradient(135deg, #6c3483, #8e44ad); }
+.btn-weather { background: linear-gradient(135deg, #d68910, #f39c12); }
+
+/* ===== MEDICATION SECTION ===== */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 8px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.person-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.person-btn {
+  flex: 1;
+  padding: 16px;
+  border: 3px solid #ddd;
+  border-radius: var(--radius);
+  background: white;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-light);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.person-btn.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(26, 82, 118, 0.08);
+}
+.person-btn .person-icon {
+  display: block;
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.med-list {
+  margin-bottom: 16px;
+}
+
+.med-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.med-check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #ddd;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.med-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+.med-info {
+  flex: 1;
+}
+.med-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.med-time {
+  font-size: 16px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+.med-dose {
+  font-size: 15px;
+  color: var(--primary-light);
+  margin-top: 2px;
+}
+.med-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fdeaea;
+  color: var(--accent);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.add-med-btn {
+  width: 100%;
+  padding: 18px;
+  border: 3px dashed #ccc;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.add-med-btn:active {
+  background: rgba(0,0,0,0.03);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.show {
+  display: flex;
+}
+.modal {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px calc(var(--safe-bottom) + 24px);
+  width: 100%;
+  max-width: 500px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal h2 {
+  font-size: 24px;
+  color: var(--primary);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.modal label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+.modal input, .modal select {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 20px;
+  color: var(--text);
+  background: #f8f9fa;
+  -webkit-appearance: none;
+}
+.modal input:focus, .modal select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.modal-btn {
+  flex: 1;
+  padding: 18px;
+  border: none;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.modal-btn-cancel {
+  background: #eee;
+  color: var(--text);
+}
+.modal-btn-save {
+  background: var(--primary);
+  color: white;
+}
+
+/* ===== SETTINGS ===== */
+.setting-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.setting-label {
+  font-size: 16px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.setting-input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 20px;
+  color: var(--text);
+  background: #f8f9fa;
+}
+.setting-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.save-settings-btn {
+  width: 100%;
+  padding: 18px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.save-settings-btn:active {
+  background: var(--primary-light);
+}
+.reset-meds-btn {
+  width: 100%;
+  padding: 16px;
+  background: #fdeaea;
+  color: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--text);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-size: 17px;
+  font-weight: 600;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="greeting" id="greeting"></div>
+  <div class="date-display" id="dateDisplay"></div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('inicio')">
+    <span class="tab-icon">🏠</span>Inicio
+  </button>
+  <button class="nav-tab" onclick="showPage('medicacion')">
+    <span class="tab-icon">💊</span>Medicación
+  </button>
+  <button class="nav-tab" onclick="showPage('ajustes')">
+    <span class="tab-icon">⚙️</span>Ajustes
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ===== INICIO ===== -->
+  <div class="page active" id="page-inicio">
+
+    <a href="tel:+541144497824" class="action-btn btn-fer" id="btnCallFer">
+      <span class="btn-icon">📞</span>
+      <span class="btn-text">
+        <span class="btn-label">Llamar a Fer</span>
+        <span class="btn-sub">Toque para llamar</span>
+      </span>
+    </a>
+
+    <a href="https://wa.me/541144497824" class="action-btn btn-whatsapp" id="btnWAFer" target="_blank">
+      <span class="btn-icon">💬</span>
+      <span class="btn-text">
+        <span class="btn-label">WhatsApp a Fer</span>
+        <span class="btn-sub">Enviar mensaje</span>
+      </span>
+    </a>
+
+    <a href="tel:107" class="action-btn btn-emergency">
+      <span class="btn-icon">🚑</span>
+      <span class="btn-text">
+        <span class="btn-label">Emergencia SAME</span>
+        <span class="btn-sub">Llamar al 107</span>
+      </span>
+    </a>
+
+    <a href="https://www.osde.com.ar/Autogestion-Publica/#/turnos" class="action-btn btn-osde" target="_blank">
+      <span class="btn-icon">🏥</span>
+      <span class="btn-text">
+        <span class="btn-label">Turnos OSDE</span>
+        <span class="btn-sub">Reservar turno médico</span>
+      </span>
+    </a>
+
+    <a href="https://wttr.in/Coghlan,Buenos+Aires?lang=es&format=3" class="action-btn btn-weather" id="btnWeather" onclick="event.preventDefault(); showWeather();">
+      <span class="btn-icon">🌤️</span>
+      <span class="btn-text">
+        <span class="btn-label">Clima en Coghlan</span>
+        <span class="btn-sub" id="weatherInfo">Toque para ver el clima</span>
+      </span>
+    </a>
+
+  </div>
+
+  <!-- ===== MEDICACIÓN ===== -->
+  <div class="page" id="page-medicacion">
+
+    <div class="person-toggle">
+      <button class="person-btn active" onclick="selectPerson('oscar')" id="btn-oscar">
+        <span class="person-icon">👴</span>Oscar
+      </button>
+      <button class="person-btn" onclick="selectPerson('mariel')" id="btn-mariel">
+        <span class="person-icon">👵</span>Mariel
+      </button>
+    </div>
+
+    <div class="med-list" id="medList"></div>
+
+    <button class="add-med-btn" onclick="openAddMed()">
+      ＋ Agregar medicamento
+    </button>
+
+  </div>
+
+  <!-- ===== AJUSTES ===== -->
+  <div class="page" id="page-ajustes">
+
+    <div class="section-title">⚙️ Configuración</div>
+
+    <div class="setting-card">
+      <div class="setting-label">Teléfono de Fer (con código de país)</div>
+      <input type="tel" class="setting-input" id="settingPhone" placeholder="ej: 5491112345678" inputmode="tel">
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-label">Nombre para mostrar</div>
+      <input type="text" class="setting-input" id="settingName" placeholder="ej: Fer" value="Fer">
+    </div>
+
+    <button class="save-settings-btn" onclick="saveSettings()">
+      ✅ Guardar cambios
+    </button>
+
+    <button class="reset-meds-btn" onclick="resetDailyMeds()">
+      🔄 Reiniciar tomas del día
+    </button>
+
+    <div style="text-align:center; margin-top: 30px; color: var(--text-light); font-size: 14px;">
+      Hecho con ❤️ para Oscar y Mariel<br>
+      <span style="font-size:12px;">Versión 1.0 — Marzo 2026</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL: Add/Edit Medication -->
+<div class="modal-overlay" id="medModal">
+  <div class="modal">
+    <h2 id="modalTitle">Agregar medicamento</h2>
+    <label for="medNameInput">Nombre del medicamento</label>
+    <input type="text" id="medNameInput" placeholder="ej: Enalapril" autocomplete="off">
+    <label for="medDoseInput">Dosis</label>
+    <input type="text" id="medDoseInput" placeholder="ej: 10mg - 1 comprimido" autocomplete="off">
+    <label for="medTimeInput">Horario</label>
+    <input type="time" id="medTimeInput" value="08:00">
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-save" onclick="saveMed()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG & STATE =====
+const DEFAULT_PHONE = '541144497824';
+let currentPerson = 'oscar';
+let medications = JSON.parse(localStorage.getItem('meds') || '{"oscar":[],"mariel":[]}');
+let takenToday = JSON.parse(localStorage.getItem('takenToday') || '{}');
+let settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
+
+// Check if we need to reset daily taken status
+const today = new Date().toDateString();
+if (localStorage.getItem('lastDate') !== today) {
+  takenToday = {};
+  localStorage.setItem('takenToday', '{}');
+  localStorage.setItem('lastDate', today);
+}
+
+// ===== GREETING =====
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let saludo;
+  if (hour < 12) saludo = 'Buenos días';
+  else if (hour < 19) saludo = 'Buenas tardes';
+  else saludo = 'Buenas noches';
+
+  document.getElementById('greeting').textContent = `${saludo}, Oscar y Mariel`;
+
+  const now = new Date();
+  const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  document.getElementById('dateDisplay').textContent = `${days[now.getDay()]} ${now.getDate()} de ${months[now.getMonth()]}`;
+}
+
+// ===== NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (page === 'medicacion') renderMeds();
+  if (page === 'ajustes') loadSettings();
+}
+
+// ===== PHONE & SETTINGS =====
+function getPhone() {
+  return settings.phone || DEFAULT_PHONE;
+}
+function getContactName() {
+  return settings.contactName || 'Fer';
+}
+
+function updatePhoneLinks() {
+  const phone = getPhone();
+  const name = getContactName();
+  const callBtn = document.getElementById('btnCallFer');
+  const waBtn = document.getElementById('btnWAFer');
+
+  if (phone) {
+    callBtn.href = 'tel:' + phone;
+    waBtn.href = 'https://wa.me/' + phone.replace(/[^0-9]/g, '');
+  } else {
+    callBtn.href = '#';
+    callBtn.onclick = (e) => { e.preventDefault(); showToast('⚙️ Configurá el teléfono en Ajustes'); showPage('ajustes'); };
+    waBtn.href = '#';
+    waBtn.onclick = (e) => { e.preventDefault(); showToast('⚙️ Configurá el teléfono en Ajustes'); };
+  }
+
+  callBtn.querySelector('.btn-label').textContent = 'Llamar a ' + name;
+  waBtn.querySelector('.btn-label').textContent = 'WhatsApp a ' + name;
+}
+
+function loadSettings() {
+  document.getElementById('settingPhone').value = settings.phone || '';
+  document.getElementById('settingName').value = settings.contactName || 'Fer';
+}
+
+function saveSettings() {
+  settings.phone = document.getElementById('settingPhone').value.trim();
+  settings.contactName = document.getElementById('settingName').value.trim() || 'Fer';
+  localStorage.setItem('appSettings', JSON.stringify(settings));
+  updatePhoneLinks();
+  showToast('✅ Cambios guardados');
+}
+
+// ===== MEDICATIONS =====
+function selectPerson(person) {
+  currentPerson = person;
+  document.getElementById('btn-oscar').classList.toggle('active', person === 'oscar');
+  document.getElementById('btn-mariel').classList.toggle('active', person === 'mariel');
+  renderMeds();
+}
+
+function renderMeds() {
+  const list = document.getElementById('medList');
+  const meds = medications[currentPerson] || [];
+
+  if (meds.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center; padding: 40px 20px; color: var(--text-light);">
+        <div style="font-size: 48px; margin-bottom: 12px;">💊</div>
+        <div style="font-size: 18px;">No hay medicamentos cargados</div>
+        <div style="font-size: 16px; margin-top: 4px;">Tocá "Agregar medicamento" para empezar</div>
+      </div>`;
+    return;
+  }
+
+  // Sort by time
+  const sorted = [...meds].sort((a, b) => a.time.localeCompare(b.time));
+
+  list.innerHTML = sorted.map((med, i) => {
+    const key = currentPerson + '_' + med.name + '_' + med.time;
+    const taken = takenToday[key] || false;
+    const timeLabel = formatTime(med.time);
+
+    return `
+      <div class="med-card">
+        <div class="med-check ${taken ? 'checked' : ''}" onclick="toggleMed('${key}', ${i})">
+          ${taken ? '✓' : ''}
+        </div>
+        <div class="med-info" style="${taken ? 'opacity:0.5;' : ''}">
+          <div class="med-name">${med.name}</div>
+          <div class="med-time">🕐 ${timeLabel}</div>
+          ${med.dose ? `<div class="med-dose">${med.dose}</div>` : ''}
+        </div>
+        <button class="med-delete" onclick="deleteMed(${i})">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function toggleMed(key, index) {
+  takenToday[key] = !takenToday[key];
+  localStorage.setItem('takenToday', JSON.stringify(takenToday));
+  renderMeds();
+  if (takenToday[key]) showToast('✅ Medicamento tomado');
+}
+
+function deleteMed(index) {
+  if (confirm('¿Eliminar este medicamento?')) {
+    medications[currentPerson].splice(index, 1);
+    localStorage.setItem('meds', JSON.stringify(medications));
+    renderMeds();
+    showToast('🗑️ Medicamento eliminado');
+  }
+}
+
+function openAddMed() {
+  document.getElementById('medNameInput').value = '';
+  document.getElementById('medDoseInput').value = '';
+  document.getElementById('medTimeInput').value = '08:00';
+  document.getElementById('modalTitle').textContent =
+    `Agregar medicamento para ${currentPerson === 'oscar' ? 'Oscar' : 'Mariel'}`;
+  document.getElementById('medModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('medModal').classList.remove('show');
+}
+
+function saveMed() {
+  const name = document.getElementById('medNameInput').value.trim();
+  const dose = document.getElementById('medDoseInput').value.trim();
+  const time = document.getElementById('medTimeInput').value;
+
+  if (!name) {
+    showToast('⚠️ Escribí el nombre del medicamento');
+    return;
+  }
+
+  if (!medications[currentPerson]) medications[currentPerson] = [];
+  medications[currentPerson].push({ name, dose, time });
+  localStorage.setItem('meds', JSON.stringify(medications));
+  closeModal();
+  renderMeds();
+  showToast('✅ Medicamento agregado');
+}
+
+function resetDailyMeds() {
+  if (confirm('¿Reiniciar todas las tomas del día?')) {
+    takenToday = {};
+    localStorage.setItem('takenToday', '{}');
+    renderMeds();
+    showToast('🔄 Tomas reiniciadas');
+  }
+}
+
+// ===== WEATHER =====
+function showWeather() {
+  const info = document.getElementById('weatherInfo');
+  info.textContent = 'Cargando...';
+
+  fetch('https://wttr.in/Coghlan,Buenos+Aires?format=%c+%t&lang=es')
+    .then(r => r.text())
+    .then(data => {
+      info.textContent = data.trim() || 'No disponible';
+    })
+    .catch(() => {
+      // Fallback: open in browser
+      window.open('https://www.google.com/search?q=clima+coghlan+buenos+aires', '_blank');
+      info.textContent = 'Toque para ver el clima';
+    });
+}
+
+// ===== HELPERS =====
+function formatTime(time) {
+  if (!time) return '';
+  const [h, m] = time.split(':');
+  const hour = parseInt(h);
+  return `${hour}:${m} hs`;
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===== INIT =====
+updateGreeting();
+updatePhoneLinks();
+
+// Update greeting every minute
+setInterval(updateGreeting, 60000);
+
+// Try to load weather on startup
+setTimeout(showWeather, 1000);
+
+// Close modal on overlay click
+document.getElementById('medModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
