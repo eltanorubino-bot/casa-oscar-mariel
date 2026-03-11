@@ -438,13 +438,13 @@ body {
 
 <!-- NAV TABS -->
 <div class="nav-tabs">
-  <button class="nav-tab active" onclick="showPage('inicio')">
+  <button class="nav-tab active" data-page="inicio" onclick="showPage('inicio', this)">
     <span class="tab-icon">🏠</span>Inicio
   </button>
-  <button class="nav-tab" onclick="showPage('medicacion')">
+  <button class="nav-tab" data-page="medicacion" onclick="showPage('medicacion', this)">
     <span class="tab-icon">💊</span>Medicación
   </button>
-  <button class="nav-tab" onclick="showPage('ajustes')">
+  <button class="nav-tab" data-page="ajustes" onclick="showPage('ajustes', this)">
     <span class="tab-icon">⚙️</span>Ajustes
   </button>
 </div>
@@ -602,15 +602,53 @@ function updateGreeting() {
 }
 
 // ===== NAVIGATION =====
-function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  event.currentTarget.classList.add('active');
+let currentPage = 'inicio';
 
-  if (page === 'medicacion') renderMeds();
-  if (page === 'ajustes') loadSettings();
+function showPage(page, btn) {
+  try {
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+    const pageEl = document.getElementById('page-' + page);
+    if (pageEl) pageEl.classList.add('active');
+
+    // Activate the correct tab button
+    if (btn) {
+      btn.classList.add('active');
+    } else {
+      const tabBtn = document.querySelector('.nav-tab[data-page="' + page + '"]');
+      if (tabBtn) tabBtn.classList.add('active');
+    }
+
+    if (page === 'medicacion') renderMeds();
+    if (page === 'ajustes') loadSettings();
+  } catch(e) {
+    console.error('showPage error:', e);
+  }
 }
+
+// Re-initialize app when returning from external links
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    try {
+      updateGreeting();
+      updatePhoneLinks();
+      showPage(currentPage);
+    } catch(e) { console.error('visibility restore error:', e); }
+  }
+});
+
+// Also handle pageshow for iOS Safari back-forward cache
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    try {
+      updateGreeting();
+      updatePhoneLinks();
+      showPage(currentPage);
+    } catch(e2) { console.error('pageshow restore error:', e2); }
+  }
+});
 
 // ===== PHONE & SETTINGS =====
 function getPhone() {
@@ -631,7 +669,7 @@ function updatePhoneLinks() {
     waBtn.href = 'https://wa.me/' + phone.replace(/[^0-9]/g, '');
   } else {
     callBtn.href = '#';
-    callBtn.onclick = (e) => { e.preventDefault(); showToast('⚙️ Configurá el teléfono en Ajustes'); showPage('ajustes'); };
+    callBtn.onclick = (e) => { e.preventDefault(); showToast('⚙️ Configurá el teléfono en Ajustes'); showPage('ajustes', null); };
     waBtn.href = '#';
     waBtn.onclick = (e) => { e.preventDefault(); showToast('⚙️ Configurá el teléfono en Ajustes'); };
   }
