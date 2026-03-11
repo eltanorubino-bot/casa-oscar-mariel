@@ -426,6 +426,128 @@ body {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+
+/* ===== NAV TABS SCROLL (5 tabs) ===== */
+.nav-tabs {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  min-width: 0;
+  font-size: 14px;
+  padding: 14px 6px;
+  white-space: nowrap;
+}
+.nav-tab .tab-icon { font-size: 22px; }
+
+/* ===== MOVIES SECTION ===== */
+.movie-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.movie-card .movie-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.movie-card .movie-meta {
+  font-size: 15px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.movie-card .movie-desc {
+  font-size: 16px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.movie-card .movie-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.movie-card .movie-link:active {
+  transform: scale(0.97);
+}
+.genre-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.genre-btn {
+  padding: 10px 18px;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  background: white;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.genre-btn.active {
+  border-color: #8e44ad;
+  color: #8e44ad;
+  background: rgba(142, 68, 173, 0.08);
+}
+
+/* ===== NEWS SECTION ===== */
+.news-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.news-card:active {
+  transform: scale(0.98);
+}
+.news-card .news-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.news-card .news-date {
+  font-size: 14px;
+  color: var(--text-light);
+}
+.news-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-light);
+  font-size: 18px;
+}
+.news-refresh-btn {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  background: white;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  margin-top: 8px;
+}
+.news-refresh-btn:active {
+  background: var(--bg);
+}
 </style>
 </head>
 <body>
@@ -443,6 +565,12 @@ body {
   </button>
   <button class="nav-tab" data-page="medicacion" onclick="showPage('medicacion', this)">
     <span class="tab-icon">💊</span>Medicación
+  </button>
+  <button class="nav-tab" data-page="peliculas" onclick="showPage('peliculas', this)">
+    <span class="tab-icon">🎬</span>Películas
+  </button>
+  <button class="nav-tab" data-page="noticias" onclick="showPage('noticias', this)">
+    <span class="tab-icon">📰</span>Noticias
   </button>
   <button class="nav-tab" data-page="ajustes" onclick="showPage('ajustes', this)">
     <span class="tab-icon">⚙️</span>Ajustes
@@ -517,6 +645,37 @@ body {
 
   </div>
 
+  <!-- ===== PELÍCULAS (Filmin) ===== -->
+  <div class="page" id="page-peliculas">
+
+    <div class="section-title">🎬 Películas en Filmin</div>
+    <p style="font-size:16px; color:var(--text-light); margin-bottom:16px;">Dramas y comedias francesas recomendadas</p>
+
+    <div class="genre-toggle">
+      <button class="genre-btn active" onclick="filterMovies('all', this)">Todas</button>
+      <button class="genre-btn" onclick="filterMovies('drama', this)">Drama</button>
+      <button class="genre-btn" onclick="filterMovies('comedia', this)">Comedia</button>
+    </div>
+
+    <div id="movieList"></div>
+
+  </div>
+
+  <!-- ===== NOTICIAS (Página/12) ===== -->
+  <div class="page" id="page-noticias">
+
+    <div class="section-title">📰 Noticias — Página/12</div>
+
+    <div id="newsList">
+      <div class="news-loading">Cargando noticias...</div>
+    </div>
+
+    <button class="news-refresh-btn" onclick="loadNews()">
+      🔄 Actualizar noticias
+    </button>
+
+  </div>
+
   <!-- ===== AJUSTES ===== -->
   <div class="page" id="page-ajustes">
 
@@ -542,7 +701,7 @@ body {
 
     <div style="text-align:center; margin-top: 30px; color: var(--text-light); font-size: 14px;">
       Hecho con ❤️ para Oscar y Mariel<br>
-      <span style="font-size:12px;">Versión 1.0 — Marzo 2026</span>
+      <span style="font-size:12px;">Versión 1.1 — Marzo 2026</span>
     </div>
 
   </div>
@@ -634,6 +793,8 @@ function showPage(page, btn) {
     }
 
     if (page === 'medicacion') renderMeds();
+    if (page === 'peliculas') renderMovies();
+    if (page === 'noticias') loadNews();
     if (page === 'ajustes') loadSettings();
   } catch(e) {
     console.error('showPage error:', e);
@@ -836,6 +997,191 @@ function showWeather() {
       // Fallback: open in browser
       window.open('https://www.google.com/search?q=clima+coghlan+buenos+aires', '_blank');
       info.textContent = 'Toque para ver el clima';
+    });
+}
+
+// ===== FILMIN MOVIES =====
+const filminMovies = [
+  {
+    title: 'Amour',
+    director: 'Michael Haneke',
+    year: 2012,
+    genre: 'drama',
+    desc: 'Una pareja de octogenarios jubilados enfrenta la enfermedad con amor y dignidad. Palma de Oro en Cannes.',
+    url: 'https://www.filmin.es/buscar?q=amour+haneke'
+  },
+  {
+    title: 'Intouchables (Amigos intocables)',
+    director: 'Olivier Nakache, Éric Toledano',
+    year: 2011,
+    genre: 'comedia',
+    desc: 'Un aristócrata tetrapléjico contrata a un joven de los suburbios como cuidador. Una historia de amistad inesperada.',
+    url: 'https://www.filmin.es/buscar?q=intouchables'
+  },
+  {
+    title: 'Le Havre',
+    director: 'Aki Kaurismäki',
+    year: 2011,
+    genre: 'comedia',
+    desc: 'Un limpiabotas jubilado ayuda a un niño inmigrante africano en el puerto de Le Havre. Tierna y con humor seco.',
+    url: 'https://www.filmin.es/buscar?q=le+havre'
+  },
+  {
+    title: 'Elle s\'appelait Sarah (La llave de Sarah)',
+    director: 'Gilles Paquet-Brenner',
+    year: 2010,
+    genre: 'drama',
+    desc: 'Una periodista estadounidense en París investiga la redada del Velódromo de Invierno y descubre un secreto familiar.',
+    url: 'https://www.filmin.es/buscar?q=la+llave+de+sarah'
+  },
+  {
+    title: 'Le goût des autres (El gusto de los demás)',
+    director: 'Agnès Jaoui',
+    year: 2000,
+    genre: 'comedia',
+    desc: 'Un industrial se enamora de una actriz de teatro. Comedia sobre las diferencias culturales y los prejuicios sociales.',
+    url: 'https://www.filmin.es/buscar?q=le+gout+des+autres'
+  },
+  {
+    title: 'Un homme et une femme (Un hombre y una mujer)',
+    director: 'Claude Lelouch',
+    year: 1966,
+    genre: 'drama',
+    desc: 'Dos viudos se conocen gracias a sus hijos y comienzan un romance. Clásico del cine francés, Palma de Oro.',
+    url: 'https://www.filmin.es/buscar?q=un+homme+et+une+femme'
+  },
+  {
+    title: 'La famille Bélier',
+    director: 'Éric Lartigau',
+    year: 2014,
+    genre: 'comedia',
+    desc: 'Una adolescente es la única oyente en una familia de sordos. Cuando descubre su talento para cantar, todo cambia.',
+    url: 'https://www.filmin.es/buscar?q=la+famille+belier'
+  },
+  {
+    title: 'Les choristes (Los chicos del coro)',
+    director: 'Christophe Barratier',
+    year: 2004,
+    genre: 'drama',
+    desc: 'Un profesor de música transforma la vida de los alumnos de un internado estricto. Emotiva y con música hermosa.',
+    url: 'https://www.filmin.es/buscar?q=les+choristes'
+  },
+  {
+    title: 'Le fabuleux destin d\'Amélie Poulain',
+    director: 'Jean-Pierre Jeunet',
+    year: 2001,
+    genre: 'comedia',
+    desc: 'Amélie, una joven tímida en Montmartre, decide mejorar la vida de quienes la rodean. Mágica y encantadora.',
+    url: 'https://www.filmin.es/buscar?q=amelie'
+  },
+  {
+    title: 'La vie en rose',
+    director: 'Olivier Dahan',
+    year: 2007,
+    genre: 'drama',
+    desc: 'La vida de Édith Piaf, desde su infancia difícil hasta convertirse en la voz más grande de Francia.',
+    url: 'https://www.filmin.es/buscar?q=la+vie+en+rose+piaf'
+  }
+];
+
+let currentGenre = 'all';
+
+function filterMovies(genre, btn) {
+  currentGenre = genre;
+  document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderMovies();
+}
+
+function renderMovies() {
+  const list = document.getElementById('movieList');
+  const filtered = currentGenre === 'all'
+    ? filminMovies
+    : filminMovies.filter(m => m.genre === currentGenre);
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-light); font-size:18px;">No hay películas en esta categoría</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(m => `
+    <div class="movie-card">
+      <div class="movie-title">${m.genre === 'comedia' ? '😄' : '🎭'} ${m.title}</div>
+      <div class="movie-meta">${m.director} · ${m.year}</div>
+      <div class="movie-desc">${m.desc}</div>
+      <a href="${m.url}" target="_blank" class="movie-link">Ver en Filmin →</a>
+    </div>
+  `).join('');
+}
+
+// ===== NOTICIAS PÁGINA/12 =====
+function loadNews() {
+  const newsList = document.getElementById('newsList');
+  newsList.innerHTML = '<div class="news-loading">📰 Cargando noticias...</div>';
+
+  // Use a CORS proxy to fetch Página/12 RSS
+  const rssUrl = 'https://www.pagina12.com.ar/rss/portada';
+  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
+
+  fetch(proxyUrl)
+    .then(r => r.text())
+    .then(xml => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const items = doc.querySelectorAll('item');
+
+      if (items.length === 0) {
+        newsList.innerHTML = '<div class="news-loading">No se pudieron cargar las noticias.<br>Tocá "Actualizar" para reintentar.</div>';
+        return;
+      }
+
+      let html = '';
+      const maxItems = Math.min(items.length, 15);
+      for (let i = 0; i < maxItems; i++) {
+        const item = items[i];
+        const title = item.querySelector('title')?.textContent || 'Sin título';
+        const link = item.querySelector('link')?.textContent || '#';
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
+
+        let dateStr = '';
+        if (pubDate) {
+          try {
+            const d = new Date(pubDate);
+            const hoy = new Date();
+            if (d.toDateString() === hoy.toDateString()) {
+              dateStr = 'Hoy ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            } else {
+              dateStr = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
+                ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            }
+          } catch(e) { dateStr = pubDate; }
+        }
+
+        html += `
+          <a href="${link}" target="_blank" style="text-decoration:none; color:inherit;">
+            <div class="news-card">
+              <div class="news-title">${title}</div>
+              ${dateStr ? `<div class="news-date">🕐 ${dateStr}</div>` : ''}
+            </div>
+          </a>`;
+      }
+
+      newsList.innerHTML = html;
+    })
+    .catch(err => {
+      console.error('News fetch error:', err);
+      // Fallback: direct link
+      newsList.innerHTML = `
+        <div class="news-loading">
+          <div style="font-size:48px; margin-bottom:12px;">📰</div>
+          <div>No se pudo conectar con Página/12</div>
+          <div style="margin-top:12px;">
+            <a href="https://www.pagina12.com.ar" target="_blank"
+              style="display:inline-block; padding:14px 28px; background:var(--primary); color:white; text-decoration:none; border-radius:14px; font-size:18px; font-weight:600;">
+              Abrir Página/12 →
+            </a>
+          </div>
+        </div>`;
     });
 }
 
