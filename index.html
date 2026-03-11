@@ -1119,29 +1119,25 @@ function loadNews() {
   const newsList = document.getElementById('newsList');
   newsList.innerHTML = '<div class="news-loading">📰 Cargando noticias...</div>';
 
-  // Use a CORS proxy to fetch Página/12 RSS
+  // Use rss2json API to fetch Página/12 RSS (reliable CORS-free)
   const rssUrl = 'https://www.pagina12.com.ar/rss/portada';
-  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
+  const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
 
-  fetch(proxyUrl)
-    .then(r => r.text())
-    .then(xml => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(xml, 'text/xml');
-      const items = doc.querySelectorAll('item');
-
-      if (items.length === 0) {
+  fetch(apiUrl)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.items || data.items.length === 0) {
         newsList.innerHTML = '<div class="news-loading">No se pudieron cargar las noticias.<br>Tocá "Actualizar" para reintentar.</div>';
         return;
       }
 
       let html = '';
-      const maxItems = Math.min(items.length, 15);
+      const maxItems = Math.min(data.items.length, 15);
       for (let i = 0; i < maxItems; i++) {
-        const item = items[i];
-        const title = item.querySelector('title')?.textContent || 'Sin título';
-        const link = item.querySelector('link')?.textContent || '#';
-        const pubDate = item.querySelector('pubDate')?.textContent || '';
+        const item = data.items[i];
+        const title = item.title || 'Sin título';
+        const link = item.link || '#';
+        const pubDate = item.pubDate || '';
 
         let dateStr = '';
         if (pubDate) {
