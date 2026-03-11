@@ -1119,25 +1119,52 @@ function loadNews() {
   const newsList = document.getElementById('newsList');
   newsList.innerHTML = '<div class="news-loading">📰 Cargando noticias...</div>';
 
-  // Use rss2json API to fetch Página/12 RSS (reliable CORS-free)
   const rssUrl = 'https://www.pagina12.com.ar/rss/portada';
-  const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
+  // Two working CORS proxies — try primary, fallback to secondary
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl),
+    'https://api.codetabs.com/v1/proxy?quest=' + rssUrl
+  ];
 
-  fetch(apiUrl)
-    .then(r => r.json())
-    .then(data => {
-      if (!data.items || data.items.length === 0) {
-        newsList.innerHTML = '<div class="news-loading">No se pudieron cargar las noticias.<br>Tocá "Actualizar" para reintentar.</div>';
-        return;
-      }
+  tryFetchNews(proxies, 0, newsList);
+}
+
+function tryFetchNews(proxies, idx, newsList) {
+  if (idx >= proxies.length) {
+    // All proxies failed — show direct link
+    newsList.innerHTML = `
+      <div class="news-loading">
+        <div style="font-size:48px; margin-bottom:12px;">📰</div>
+        <div>No se pudieron cargar las noticias</div>
+        <div style="margin-top:12px;">
+          <a href="https://www.pagina12.com.ar" target="_blank"
+            style="display:inline-block; padding:14px 28px; background:var(--primary); color:white; text-decoration:none; border-radius:14px; font-size:18px; font-weight:600;">
+            Abrir Página/12 →
+          </a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  fetch(proxies[idx], { signal: AbortSignal.timeout(12000) })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(xmlText => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlText, 'text/xml');
+      const items = doc.querySelectorAll('item');
+
+      if (!items || items.length === 0) throw new Error('No items found');
 
       let html = '';
-      const maxItems = Math.min(data.items.length, 15);
-      for (let i = 0; i < maxItems; i++) {
-        const item = data.items[i];
-        const title = item.title || 'Sin título';
-        const link = item.link || '#';
-        const pubDate = item.pubDate || '';
+      const max = Math.min(items.length, 15);
+      for (let i = 0; i < max; i++) {
+        const item = items[i];
+        const title = (item.querySelector('title')?.textContent || 'Sin título').trim();
+        const link = (item.querySelector('link')?.textContent || '#').trim();
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
 
         let dateStr = '';
         if (pubDate) {
@@ -1150,7 +1177,7 @@ function loadNews() {
               dateStr = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
                 ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
             }
-          } catch(e) { dateStr = pubDate; }
+          } catch(e) { dateStr = ''; }
         }
 
         html += `
@@ -1165,19 +1192,8 @@ function loadNews() {
       newsList.innerHTML = html;
     })
     .catch(err => {
-      console.error('News fetch error:', err);
-      // Fallback: direct link
-      newsList.innerHTML = `
-        <div class="news-loading">
-          <div style="font-size:48px; margin-bottom:12px;">📰</div>
-          <div>No se pudo conectar con Página/12</div>
-          <div style="margin-top:12px;">
-            <a href="https://www.pagina12.com.ar" target="_blank"
-              style="display:inline-block; padding:14px 28px; background:var(--primary); color:white; text-decoration:none; border-radius:14px; font-size:18px; font-weight:600;">
-              Abrir Página/12 →
-            </a>
-          </div>
-        </div>`;
+      console.warn('Proxy ' + idx + ' failed:', err.message);
+      tryFetchNews(proxies, idx + 1, newsList);
     });
 }
 
