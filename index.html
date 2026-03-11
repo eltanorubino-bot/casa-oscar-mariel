@@ -1119,11 +1119,10 @@ function loadNews() {
   const newsList = document.getElementById('newsList');
   newsList.innerHTML = '<div class="news-loading">📰 Cargando noticias...</div>';
 
-  const rssUrl = 'https://www.pagina12.com.ar/rss/portada';
-  // Two working CORS proxies — try primary, fallback to secondary
+  // Scrape P12 homepage HTML via CORS proxy (RSS feed is broken)
   const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl),
-    'https://api.codetabs.com/v1/proxy?quest=' + rssUrl
+    'https://api.codetabs.com/v1/proxy?quest=https://www.pagina12.com.ar',
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.pagina12.com.ar')
   ];
 
   tryFetchNews(proxies, 0, newsList);
@@ -1131,7 +1130,6 @@ function loadNews() {
 
 function tryFetchNews(proxies, idx, newsList) {
   if (idx >= proxies.length) {
-    // All proxies failed — show direct link
     newsList.innerHTML = `
       <div class="news-loading">
         <div style="font-size:48px; margin-bottom:12px;">📰</div>
@@ -1146,45 +1144,47 @@ function tryFetchNews(proxies, idx, newsList) {
     return;
   }
 
-  fetch(proxies[idx], { signal: AbortSignal.timeout(12000) })
+  fetch(proxies[idx], { signal: AbortSignal.timeout(15000) })
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.text();
     })
-    .then(xmlText => {
+    .then(htmlText => {
       const parser = new DOMParser();
-      const doc = parser.parseFromString(xmlText, 'text/xml');
-      const items = doc.querySelectorAll('item');
+      const doc = parser.parseFromString(htmlText, 'text/html');
 
-      if (!items || items.length === 0) throw new Error('No items found');
+      // Extract article links matching P12 date-based URLs
+      const articles = [];
+      const seen = new Set();
+      const allLinks = doc.querySelectorAll('a[href]');
+
+      for (const a of allLinks) {
+        let href = a.getAttribute('href') || '';
+        if (href.startsWith('/')) href = 'https://www.pagina12.com.ar' + href;
+        if (!/pagina12\.com\.ar\/\d{4}\/\d{2}\/\d{2}\//.test(href)) continue;
+
+        const heading = a.querySelector('h1, h2, h3, h4, h5');
+        let title = heading ? heading.textContent.trim() : a.textContent.trim();
+        title = title.replace(/\s+/g, ' ').trim();
+
+        if (title.length > 15 && title.length < 200 && !seen.has(href)) {
+          seen.add(href);
+          articles.push({ title, link: href });
+        }
+      }
+
+      if (articles.length === 0) throw new Error('No articles found');
 
       let html = '';
-      const max = Math.min(items.length, 15);
+      const max = Math.min(articles.length, 15);
       for (let i = 0; i < max; i++) {
-        const item = items[i];
-        const title = (item.querySelector('title')?.textContent || 'Sin título').trim();
-        const link = (item.querySelector('link')?.textContent || '#').trim();
-        const pubDate = item.querySelector('pubDate')?.textContent || '';
-
-        let dateStr = '';
-        if (pubDate) {
-          try {
-            const d = new Date(pubDate);
-            const hoy = new Date();
-            if (d.toDateString() === hoy.toDateString()) {
-              dateStr = 'Hoy ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-            } else {
-              dateStr = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) +
-                ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-            }
-          } catch(e) { dateStr = ''; }
-        }
-
+        const art = articles[i];
+        // Sanitize title for HTML injection
+        const safeTitle = art.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         html += `
-          <a href="${link}" target="_blank" style="text-decoration:none; color:inherit;">
+          <a href="${art.link}" target="_blank" style="text-decoration:none; color:inherit;">
             <div class="news-card">
-              <div class="news-title">${title}</div>
-              ${dateStr ? `<div class="news-date">🕐 ${dateStr}</div>` : ''}
+              <div class="news-title">${safeTitle}</div>
             </div>
           </a>`;
       }
