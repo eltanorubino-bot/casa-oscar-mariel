@@ -566,6 +566,18 @@ body {
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2 id="confirmTitle">¿Estás seguro?</h2>
+    <p id="confirmMessage" style="font-size:18px; text-align:center; color:var(--text-light); margin-bottom:8px;"></p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeConfirm(false)">No</button>
+      <button class="modal-btn modal-btn-save" style="background:var(--accent);" onclick="closeConfirm(true)">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -743,13 +755,31 @@ function toggleMed(key, index) {
   if (takenToday[key]) showToast('✅ Medicamento tomado');
 }
 
+let confirmCallback = null;
+
+function showConfirm(title, message, btnText, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  const confirmBtn = document.querySelector('#confirmModal .modal-btn-save');
+  confirmBtn.textContent = btnText || 'Sí, eliminar';
+  confirmCallback = callback;
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function closeConfirm(result) {
+  document.getElementById('confirmModal').classList.remove('show');
+  if (result && confirmCallback) confirmCallback();
+  confirmCallback = null;
+}
+
 function deleteMed(index) {
-  if (confirm('¿Eliminar este medicamento?')) {
+  const medName = medications[currentPerson][index]?.name || 'este medicamento';
+  showConfirm('¿Eliminar medicamento?', `Se eliminará "${medName}" de la lista.`, 'Sí, eliminar', function() {
     medications[currentPerson].splice(index, 1);
     localStorage.setItem('meds', JSON.stringify(medications));
     renderMeds();
     showToast('🗑️ Medicamento eliminado');
-  }
+  });
 }
 
 function openAddMed() {
@@ -784,12 +814,12 @@ function saveMed() {
 }
 
 function resetDailyMeds() {
-  if (confirm('¿Reiniciar todas las tomas del día?')) {
+  showConfirm('¿Reiniciar tomas?', 'Se desmarcarán todos los medicamentos tomados hoy.', 'Sí, reiniciar', function() {
     takenToday = {};
     localStorage.setItem('takenToday', '{}');
     renderMeds();
     showToast('🔄 Tomas reiniciadas');
-  }
+  });
 }
 
 // ===== WEATHER =====
@@ -834,9 +864,12 @@ setInterval(updateGreeting, 60000);
 // Try to load weather on startup
 setTimeout(showWeather, 1000);
 
-// Close modal on overlay click
+// Close modals on overlay click
 document.getElementById('medModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
+});
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm(false);
 });
 </script>
 </body>
