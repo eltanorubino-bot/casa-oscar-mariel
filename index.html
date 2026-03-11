@@ -649,7 +649,7 @@ body {
   <div class="page" id="page-peliculas">
 
     <div class="section-title">🎬 Películas en Filmin</div>
-    <p style="font-size:16px; color:var(--text-light); margin-bottom:16px;">Dramas y comedias francesas recomendadas</p>
+    <p style="font-size:16px; color:var(--text-light); margin-bottom:16px;">Dramas y comedias francesas — 10 nuevas cada día</p>
 
     <div class="genre-toggle">
       <button class="genre-btn active" onclick="filterMovies('all', this)">Todas</button>
@@ -794,7 +794,8 @@ function showPage(page, btn) {
 
     if (page === 'medicacion') renderMeds();
     if (page === 'peliculas') renderMovies();
-    if (page === 'noticias') loadNews();
+    if (page === 'noticias') { loadNews(); startNewsAutoRefresh(); }
+    else { stopNewsAutoRefresh(); }
     if (page === 'ajustes') loadSettings();
   } catch(e) {
     console.error('showPage error:', e);
@@ -1001,90 +1002,62 @@ function showWeather() {
 }
 
 // ===== FILMIN MOVIES =====
-const filminMovies = [
-  {
-    title: 'Amour',
-    director: 'Michael Haneke',
-    year: 2012,
-    genre: 'drama',
-    desc: 'Una pareja de octogenarios jubilados enfrenta la enfermedad con amor y dignidad. Palma de Oro en Cannes.',
-    url: 'https://www.filmin.es/buscar?q=amour+haneke'
-  },
-  {
-    title: 'Intouchables (Amigos intocables)',
-    director: 'Olivier Nakache, Éric Toledano',
-    year: 2011,
-    genre: 'comedia',
-    desc: 'Un aristócrata tetrapléjico contrata a un joven de los suburbios como cuidador. Una historia de amistad inesperada.',
-    url: 'https://www.filmin.es/buscar?q=intouchables'
-  },
-  {
-    title: 'Le Havre',
-    director: 'Aki Kaurismäki',
-    year: 2011,
-    genre: 'comedia',
-    desc: 'Un limpiabotas jubilado ayuda a un niño inmigrante africano en el puerto de Le Havre. Tierna y con humor seco.',
-    url: 'https://www.filmin.es/buscar?q=le+havre'
-  },
-  {
-    title: 'Elle s\'appelait Sarah (La llave de Sarah)',
-    director: 'Gilles Paquet-Brenner',
-    year: 2010,
-    genre: 'drama',
-    desc: 'Una periodista estadounidense en París investiga la redada del Velódromo de Invierno y descubre un secreto familiar.',
-    url: 'https://www.filmin.es/buscar?q=la+llave+de+sarah'
-  },
-  {
-    title: 'Le goût des autres (El gusto de los demás)',
-    director: 'Agnès Jaoui',
-    year: 2000,
-    genre: 'comedia',
-    desc: 'Un industrial se enamora de una actriz de teatro. Comedia sobre las diferencias culturales y los prejuicios sociales.',
-    url: 'https://www.filmin.es/buscar?q=le+gout+des+autres'
-  },
-  {
-    title: 'Un homme et une femme (Un hombre y una mujer)',
-    director: 'Claude Lelouch',
-    year: 1966,
-    genre: 'drama',
-    desc: 'Dos viudos se conocen gracias a sus hijos y comienzan un romance. Clásico del cine francés, Palma de Oro.',
-    url: 'https://www.filmin.es/buscar?q=un+homme+et+une+femme'
-  },
-  {
-    title: 'La famille Bélier',
-    director: 'Éric Lartigau',
-    year: 2014,
-    genre: 'comedia',
-    desc: 'Una adolescente es la única oyente en una familia de sordos. Cuando descubre su talento para cantar, todo cambia.',
-    url: 'https://www.filmin.es/buscar?q=la+famille+belier'
-  },
-  {
-    title: 'Les choristes (Los chicos del coro)',
-    director: 'Christophe Barratier',
-    year: 2004,
-    genre: 'drama',
-    desc: 'Un profesor de música transforma la vida de los alumnos de un internado estricto. Emotiva y con música hermosa.',
-    url: 'https://www.filmin.es/buscar?q=les+choristes'
-  },
-  {
-    title: 'Le fabuleux destin d\'Amélie Poulain',
-    director: 'Jean-Pierre Jeunet',
-    year: 2001,
-    genre: 'comedia',
-    desc: 'Amélie, una joven tímida en Montmartre, decide mejorar la vida de quienes la rodean. Mágica y encantadora.',
-    url: 'https://www.filmin.es/buscar?q=amelie'
-  },
-  {
-    title: 'La vie en rose',
-    director: 'Olivier Dahan',
-    year: 2007,
-    genre: 'drama',
-    desc: 'La vida de Édith Piaf, desde su infancia difícil hasta convertirse en la voz más grande de Francia.',
-    url: 'https://www.filmin.es/buscar?q=la+vie+en+rose+piaf'
-  }
+const allFilminMovies = [
+  // DRAMAS
+  { title: 'Amour', director: 'Michael Haneke', year: 2012, genre: 'drama', desc: 'Una pareja de octogenarios enfrenta la enfermedad con amor y dignidad. Palma de Oro en Cannes.', url: 'https://www.filmin.es/buscar?q=amour+haneke' },
+  { title: 'Elle s\'appelait Sarah (La llave de Sarah)', director: 'Gilles Paquet-Brenner', year: 2010, genre: 'drama', desc: 'Una periodista en París investiga la redada del Velódromo de Invierno y descubre un secreto familiar.', url: 'https://www.filmin.es/buscar?q=la+llave+de+sarah' },
+  { title: 'Un homme et une femme', director: 'Claude Lelouch', year: 1966, genre: 'drama', desc: 'Dos viudos se conocen gracias a sus hijos y comienzan un romance. Clásico del cine francés, Palma de Oro.', url: 'https://www.filmin.es/buscar?q=un+homme+et+une+femme' },
+  { title: 'Les choristes (Los chicos del coro)', director: 'Christophe Barratier', year: 2004, genre: 'drama', desc: 'Un profesor de música transforma la vida de los alumnos de un internado estricto. Emotiva y con música hermosa.', url: 'https://www.filmin.es/buscar?q=les+choristes' },
+  { title: 'La vie en rose', director: 'Olivier Dahan', year: 2007, genre: 'drama', desc: 'La vida de Édith Piaf, desde su infancia difícil hasta convertirse en la voz más grande de Francia.', url: 'https://www.filmin.es/buscar?q=la+vie+en+rose+piaf' },
+  { title: 'Au revoir les enfants', director: 'Louis Malle', year: 1987, genre: 'drama', desc: 'En un colegio católico durante la ocupación nazi, un niño descubre el secreto de su compañero. Historia real.', url: 'https://www.filmin.es/buscar?q=au+revoir+les+enfants' },
+  { title: 'La classe (Entre los muros)', director: 'Laurent Cantet', year: 2008, genre: 'drama', desc: 'Un profesor de francés en un colegio multicultural de París. Palma de Oro, con actores no profesionales.', url: 'https://www.filmin.es/buscar?q=entre+los+muros' },
+  { title: 'Des hommes et des dieux', director: 'Xavier Beauvois', year: 2010, genre: 'drama', desc: 'Monjes cistercienses en Argelia enfrentan la violencia con fe y valentía. Historia real, profundamente conmovedora.', url: 'https://www.filmin.es/buscar?q=de+dioses+y+hombres' },
+  { title: 'La Haine (El odio)', director: 'Mathieu Kassovitz', year: 1995, genre: 'drama', desc: 'Tres jóvenes de los suburbios de París viven 24 horas tensas tras una revuelta policial. Impactante y vigente.', url: 'https://www.filmin.es/buscar?q=la+haine' },
+  { title: 'Caché (Escondido)', director: 'Michael Haneke', year: 2005, genre: 'drama', desc: 'Una familia parisina recibe cintas de vigilancia anónimas. Thriller psicológico sobre la culpa y la memoria.', url: 'https://www.filmin.es/buscar?q=cache+haneke' },
+  { title: 'Le scaphandre et le papillon', director: 'Julian Schnabel', year: 2007, genre: 'drama', desc: 'El editor de Elle sufre un derrame y solo puede mover un párpado. Dicta sus memorias con valentía extraordinaria.', url: 'https://www.filmin.es/buscar?q=la+escafandra+y+la+mariposa' },
+  { title: 'Indochine', director: 'Régis Wargnier', year: 1992, genre: 'drama', desc: 'Catherine Deneuve como dueña de una plantación en Indochina durante la descolonización. Épica y romántica.', url: 'https://www.filmin.es/buscar?q=indochine' },
+  { title: 'Jean de Florette', director: 'Claude Berri', year: 1986, genre: 'drama', desc: 'Un jorobado hereda una granja en Provenza. Sus vecinos conspiran para robarle el agua. Clásico imperdible.', url: 'https://www.filmin.es/buscar?q=jean+de+florette' },
+  { title: 'Manon des Sources', director: 'Claude Berri', year: 1986, genre: 'drama', desc: 'La hija de Jean de Florette crece y busca venganza. Segunda parte de la saga provenzal. Final memorable.', url: 'https://www.filmin.es/buscar?q=manon+des+sources' },
+  { title: 'Les Misérables', director: 'Ladj Ly', year: 2019, genre: 'drama', desc: 'Un policía nuevo en un barrio conflictivo de Montfermeil. Tensión social actual inspirada en Hugo. Premio del Jurado en Cannes.', url: 'https://www.filmin.es/buscar?q=les+miserables+ladj+ly' },
+  { title: 'Cyrano de Bergerac', director: 'Jean-Paul Rappeneau', year: 1990, genre: 'drama', desc: 'Depardieu como el poeta espadachín que ama en secreto. Grandiosa adaptación del clásico de Rostand.', url: 'https://www.filmin.es/buscar?q=cyrano+de+bergerac+depardieu' },
+  { title: 'Le passé (El pasado)', director: 'Asghar Farhadi', year: 2013, genre: 'drama', desc: 'Un iraní vuelve a París para divorciarse y descubre secretos familiares. Del director de Nader y Simin.', url: 'https://www.filmin.es/buscar?q=el+pasado+farhadi' },
+  // COMEDIAS
+  { title: 'Intouchables (Amigos intocables)', director: 'Olivier Nakache, Éric Toledano', year: 2011, genre: 'comedia', desc: 'Un aristócrata tetrapléjico contrata a un joven de los suburbios como cuidador. Amistad inesperada y conmovedora.', url: 'https://www.filmin.es/buscar?q=intouchables' },
+  { title: 'Le Havre', director: 'Aki Kaurismäki', year: 2011, genre: 'comedia', desc: 'Un limpiabotas jubilado ayuda a un niño inmigrante africano en el puerto de Le Havre. Tierna y con humor seco.', url: 'https://www.filmin.es/buscar?q=le+havre' },
+  { title: 'Le goût des autres', director: 'Agnès Jaoui', year: 2000, genre: 'comedia', desc: 'Un industrial se enamora de una actriz de teatro. Sobre las diferencias culturales y los prejuicios sociales.', url: 'https://www.filmin.es/buscar?q=le+gout+des+autres' },
+  { title: 'La famille Bélier', director: 'Éric Lartigau', year: 2014, genre: 'comedia', desc: 'Una adolescente es la única oyente en una familia de sordos. Cuando descubre su talento para cantar, todo cambia.', url: 'https://www.filmin.es/buscar?q=la+famille+belier' },
+  { title: 'Le fabuleux destin d\'Amélie Poulain', director: 'Jean-Pierre Jeunet', year: 2001, genre: 'comedia', desc: 'Amélie, una joven tímida en Montmartre, decide mejorar la vida de quienes la rodean. Mágica y encantadora.', url: 'https://www.filmin.es/buscar?q=amelie' },
+  { title: 'Le dîner de cons', director: 'Francis Veber', year: 1998, genre: 'comedia', desc: 'Un grupo de amigos organiza una cena donde cada uno trae al invitado más tonto. Comedia clásica francesa.', url: 'https://www.filmin.es/buscar?q=la+cena+de+los+tontos' },
+  { title: 'Bienvenue chez les Ch\'tis', director: 'Dany Boon', year: 2008, genre: 'comedia', desc: 'Un director de correos del sur es transferido al norte de Francia. Humor sobre los estereotipos regionales.', url: 'https://www.filmin.es/buscar?q=bienvenidos+al+norte' },
+  { title: 'Le prénom (El nombre)', director: 'Alexandre de La Patellière', year: 2012, genre: 'comedia', desc: 'Una cena familiar se convierte en caos cuando anuncian el nombre elegido para el bebé. Ácida y brillante.', url: 'https://www.filmin.es/buscar?q=le+prenom' },
+  { title: 'Comme un chef (El chef)', director: 'Daniel Cohen', year: 2012, genre: 'comedia', desc: 'Un chef con estrella Michelin en crisis se alía con un cocinero amateur. Divertida y con mucha gastronomía.', url: 'https://www.filmin.es/buscar?q=el+chef+jean+reno' },
+  { title: 'Ratatouille', director: 'Brad Bird (Pixar)', year: 2007, genre: 'comedia', desc: 'Una rata con talento culinario sueña con cocinar en el mejor restaurante de París. Hermosa carta de amor a la cocina francesa.', url: 'https://www.filmin.es/buscar?q=ratatouille' },
+  { title: 'Les visiteurs (Los visitantes)', director: 'Jean-Marie Poiré', year: 1993, genre: 'comedia', desc: 'Un caballero medieval y su escudero viajan al presente por un hechizo fallido. Comedia desopilante y clásica.', url: 'https://www.filmin.es/buscar?q=les+visiteurs' },
+  { title: 'Qu\'est-ce qu\'on a fait au Bon Dieu?', director: 'Philippe de Chauveron', year: 2014, genre: 'comedia', desc: 'Un matrimonio católico ve cómo sus cuatro hijas se casan con hombres de distintas religiones. Humor sobre la tolerancia.', url: 'https://www.filmin.es/buscar?q=dios+mio+que+hemos+hecho' },
+  { title: 'Le Grand Bain (El gran baño)', director: 'Gilles Lellouche', year: 2018, genre: 'comedia', desc: 'Un grupo de hombres en crisis forma un equipo de nado sincronizado masculino. Emotiva y muy divertida.', url: 'https://www.filmin.es/buscar?q=el+gran+bano' },
+  { title: 'OSS 117: Le Caire, nid d\'espions', director: 'Michel Hazanavicius', year: 2006, genre: 'comedia', desc: 'Parodia genial de las películas de espías. Jean Dujardin como un agente secreto francés torpe y arrogante en El Cairo.', url: 'https://www.filmin.es/buscar?q=oss+117' },
+  { title: 'L\'auberge espagnole', director: 'Cédric Klapisch', year: 2002, genre: 'comedia', desc: 'Un joven francés se muda a Barcelona con compañeros Erasmus de toda Europa. Fresca, divertida y multicultural.', url: 'https://www.filmin.es/buscar?q=una+casa+de+locos' },
+  { title: 'Hors de prix (Irresistible)', director: 'Pierre Salvadori', year: 2006, genre: 'comedia', desc: 'Audrey Tautou como una cazafortunas en la Riviera que se enamora de un camarero. Comedia romántica elegante.', url: 'https://www.filmin.es/buscar?q=hors+de+prix' },
+  { title: 'Les femmes du 6ème étage', director: 'Philippe Le Guay', year: 2010, genre: 'comedia', desc: 'Un burgués parisino descubre la alegría de vivir al conocer a las empleadas españolas de su edificio. Encantadora.', url: 'https://www.filmin.es/buscar?q=las+chicas+de+la+sexta+planta' }
 ];
 
+// Daily rotation: pick 10 movies based on today's date
+function getDailyMovies() {
+  const today = new Date();
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+  // Shuffle using day as seed
+  const shuffled = [...allFilminMovies];
+  let seed = dayOfYear * 2654435761; // hash
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF;
+    const j = Math.abs(seed) % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, 10);
+}
+
 let currentGenre = 'all';
+let todaysMovies = getDailyMovies();
 
 function filterMovies(genre, btn) {
   currentGenre = genre;
@@ -1096,11 +1069,11 @@ function filterMovies(genre, btn) {
 function renderMovies() {
   const list = document.getElementById('movieList');
   const filtered = currentGenre === 'all'
-    ? filminMovies
-    : filminMovies.filter(m => m.genre === currentGenre);
+    ? todaysMovies
+    : todaysMovies.filter(m => m.genre === currentGenre);
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-light); font-size:18px;">No hay películas en esta categoría</div>';
+    list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-light); font-size:18px;">No hay películas en esta categoría hoy</div>';
     return;
   }
 
@@ -1218,6 +1191,31 @@ updatePhoneLinks();
 
 // Update greeting every minute
 setInterval(updateGreeting, 60000);
+
+// ===== NEWS AUTO-REFRESH (every 10 min while on Noticias tab) =====
+let newsInterval = null;
+function startNewsAutoRefresh() {
+  stopNewsAutoRefresh();
+  newsInterval = setInterval(function() {
+    if (currentPage === 'noticias') loadNews();
+  }, 10 * 60 * 1000); // 10 minutes
+}
+function stopNewsAutoRefresh() {
+  if (newsInterval) { clearInterval(newsInterval); newsInterval = null; }
+}
+
+// ===== DAILY MOVIE REFRESH (check if day changed) =====
+let lastMovieDay = new Date().toDateString();
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    const today = new Date().toDateString();
+    if (today !== lastMovieDay) {
+      lastMovieDay = today;
+      todaysMovies = getDailyMovies();
+      if (currentPage === 'peliculas') renderMovies();
+    }
+  }
+});
 
 // Try to load weather on startup
 setTimeout(showWeather, 1000);
